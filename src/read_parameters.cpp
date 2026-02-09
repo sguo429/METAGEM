@@ -177,27 +177,31 @@ void CommandLine::processCommandLine(int argc, char* argv[]) {
         if (!additionalJointInfo.empty()) {
           additionalJoint = true;
           
-          if (additionalJointInfo.size() == 1) {
-            cerr << "ERROR: Both of the variable name and full path of the additional joint meta-analysis output file should be specified.\n\n";
-            exit(1); 
+          if (additionalJointInfo.size() > 1) {
+            intNames2.assign(additionalJointInfo.begin(), additionalJointInfo.end() - 1);
+          } else {
+            intNames2.clear(); // Ensure it is empty if only the path is provided
           }
 
-          // Check if the full path of the additional output file specified at the end
-          const std::string& lastTestInfo = additionalJointInfo.back();
+          outFile2 = additionalJointInfo.back();
+
+          // Check if the file path was accidentally a variable name
           for (const auto& name : intNames) {
-            if (lastTestInfo == name) {
+            if (outFile2 == name) {
               cerr << "ERROR: Please specify the full path of the additional output file at the end of '--additional-joint' flag.\n\n";
               exit(1);
             }
           }
           
-          intNames2.assign(additionalJointInfo.begin(), additionalJointInfo.end() - 1);
-          outFile2 = additionalJointInfo.back();
-          std::set<std::string> s(intNames2.begin(), intNames2.end());
-          if (s.size() != intNames2.size()) {
-              cerr << "\nERROR: There are duplicate exposure names in the additional joint meta-analysis.\n\n";
-              exit(1);
+          // Duplicate check (only if there are exposures to check)
+          if (!intNames2.empty()) {
+              std::set<std::string> s(intNames2.begin(), intNames2.end());
+              if (s.size() != intNames2.size()) {
+                  cerr << "\nERROR: There are duplicate exposure names in the additional joint meta-analysis.\n\n";
+                  exit(1);
+              }
           }
+          
           nInt2 = intNames2.size() + 1;
           
           lcIntNames2 = intNames2;
