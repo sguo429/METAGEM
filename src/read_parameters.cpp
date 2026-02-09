@@ -243,11 +243,14 @@ void CommandLine::processCommandLine(int argc, char* argv[]) {
         if (!additionalInteractionInfo.empty()) {
           additionalInteraction = true;
 
+          outFile3 = additionalInteractionInfo.back();
+
           if (additionalInteractionInfo.size() > 1) {
-              intNames3.assign(additionalInteractionInfo.begin(), additionalInteractionInfo.end() - 1);
+              intNames3.assign(additionalInteractionInfo.begin(),
+                               additionalInteractionInfo.end() - 1);
           } else {
-              // If they only gave a filename, we assume they want the main genetic effect "G"
-              intNames3.push_back("G"); 
+              intNames3.clear();
+              intNames3.push_back("G");   // genetic term only
           }
 
           // Check if the full path of the additional output file specified at the end
@@ -259,23 +262,30 @@ void CommandLine::processCommandLine(int argc, char* argv[]) {
             }
           }
           
-          intNames3.assign(additionalInteractionInfo.begin(), additionalInteractionInfo.end() - 1);
-          outFile3 = additionalInteractionInfo.back();
           std::set<std::string> s(intNames3.begin(), intNames3.end());
           if (s.size() != intNames3.size()) {
-              cerr << "\nERROR: There are duplicate exposure names in the additional interaction-only meta-analysis.\n\n";
+              cerr << "\nERROR: There are duplicate names in --additional-interaction.\n\n";
               exit(1);
           }
+      
           nInt3 = intNames3.size();
-          
-          for(std::string &s : lcIntNames3){
-              std::transform(s.begin(), s.end(), s.begin(), [](char c){ return std::tolower(c); });
-              // ONLY add "g-" if the variable is an exposure, not the main effect
-              if (s != "g") {
+          if (nInt3 == 0) {
+              cerr << "\nERROR: --additional-interaction produced 0 terms.\n\n";
+              exit(1);
+          }
+      
+          // Build lcIntNames3 for column matching in processFileHeader()
+          lcIntNames3 = intNames3;
+          for (auto &s : lcIntNames3) {
+              std::transform(s.begin(), s.end(), s.begin(),
+                             [](unsigned char c){ return std::tolower(c); });
+      
+              if (s == "g") {
+                  // keep "g" for main effect column Beta_G
+              } else {
                   s = "g-" + s;
               }
           }
-
           // Additional output file
           std::ofstream results3(outFile3);
           if (!results3) {
