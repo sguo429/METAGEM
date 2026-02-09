@@ -465,12 +465,21 @@ void processFileHeader(int nInt1, int nInt2, int nInt3, bool mb, bool rb, bool a
                 if (it != lc_betaIntNames.end())
                 {
                     auto idx = std::distance(lc_betaIntNames.begin(), it);
-                    ord_betaIntNames3.push_back(betaIntNames[idx]);
-                    betaIntColumn3.push_back(columnNames["Beta_" + betaIntNames[idx]]);
+                    std::string actualName = betaIntNames[idx]; // This will be "G" or an exposure name
+                    ord_betaIntNames3.push_back(actualName);
+                    
+                    // Construct the column name correctly
+                    std::string colName = "Beta_" + actualName; 
+                    if (columnNames.find(colName) != columnNames.end()) {
+                        betaIntColumn3.push_back(columnNames[colName]);
+                    } else {
+                        cerr << "\nERROR: Could not find column " << colName << " in " << fileName << "\n";
+                        exit(1);
+                    }
                 }
                 else 
                 {
-                    cerr << "\nERROR: The file [" << fileName << "] does not contain the GxE term: " << lc_intNames3[i] << ".\n\n";
+                    cerr << "\nERROR: The file [" << fileName << "] does not contain the term: " << lc_intNames3[i] << ".\n\n";
                     exit(1);
                 }
             }
@@ -719,7 +728,9 @@ void printOutputHeader(bool mb, bool rb, bool additionalJoint, bool additionalIn
     
     if(additionalInteraction){
         for(std::string &s : intNames3){
-            s = "G-" + s;
+            if (std::tolower(s[0]) != 'g' || s.length() > 1) { // Only prefix if not already "G" or "g"
+                 s = "G-" + s;
+            }
         }
 
 
