@@ -242,10 +242,12 @@ void CommandLine::processCommandLine(int argc, char* argv[]) {
         // Additional interaction-only meta-analysis
         if (!additionalInteractionInfo.empty()) {
           additionalInteraction = true;
-          
-          if (additionalInteractionInfo.size() == 1) {
-            cerr << "ERROR: Both of the variable name and full path of the additional interaction-only meta-analysis output file should be specified.\n\n";
-            exit(1); 
+
+          if (additionalInteractionInfo.size() > 1) {
+              intNames3.assign(additionalInteractionInfo.begin(), additionalInteractionInfo.end() - 1);
+          } else {
+              // If they only gave a filename, we assume they want the main genetic effect "G"
+              intNames3.push_back("G"); 
           }
 
           // Check if the full path of the additional output file specified at the end
@@ -266,10 +268,12 @@ void CommandLine::processCommandLine(int argc, char* argv[]) {
           }
           nInt3 = intNames3.size();
           
-          lcIntNames3 = intNames3;
           for(std::string &s : lcIntNames3){
               std::transform(s.begin(), s.end(), s.begin(), [](char c){ return std::tolower(c); });
-              s = "g-" + s;
+              // ONLY add "g-" if the variable is an exposure, not the main effect
+              if (s != "g") {
+                  s = "g-" + s;
+              }
           }
 
           // Additional output file
