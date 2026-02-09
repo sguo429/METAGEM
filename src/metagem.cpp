@@ -638,7 +638,7 @@ void metagem(CommandLine cmd)
     boost::math::chi_squared chisq_dist_Joint(nInt1);
     boost::math::chi_squared chisq_dist_Int2(nInt2-1);
     boost::math::chi_squared chisq_dist_Joint2(nInt2);
-    boost::math::chi_squared chisq_dist_Int3(nInt3);
+    boost::math::chi_squared chisq_dist_Int3(std::max((int)nInt3, 1));
 
     printMetaBegin(nFiles, nvars);
     for (int i = 0; i < nvars; i++)
